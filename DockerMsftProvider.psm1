@@ -583,12 +583,14 @@ function InstallContainer
     }
     else
     {
-        switch(Get-wmiobject -class win32_operatingsystem | select-object -ExpandProperty Caption ){                
-            'Microsoft Windows 10' {
+        switch -wildcard (Get-wmiobject -class win32_operatingsystem | select-object -ExpandProperty Caption ){
+            'Microsoft Windows 10 *' {
                 $containerExists = Get-WindowsOptionalFeature -Online -FeatureName Containers | 
                 Select-object -Property *,@{name='Installed';expression={$_.State -eq 'Enabled'}}
             }
-            Default {$containerExists = Get-WindowsFeature -Name Containers}
+            Default {
+                $containerExists = Get-WindowsFeature -Name Containers
+            }
         }
         if($containerExists -and $containerExists.Installed)
         {
@@ -598,11 +600,11 @@ function InstallContainer
         else
         {
             Write-Verbose "Installing Containers..."
-            switch(Get-wmiobject -class win32_operatingsystem | select-object -ExpandProperty Caption ){                
-                'Microsoft Windows 10' {$null = Enable-WindowsOptionalFeature -FeatureName Containers}
+            switch -wildcard (Get-wmiobject -class win32_operatingsystem | select-object -ExpandProperty Caption ){
+                'Microsoft Windows 10 *' {$null = Enable-WindowsOptionalFeature -FeatureName Containers -Online}
                 Default {$null = Install-WindowsFeature containers}
             }
-            $script:restartRequired = $true            
+            $script:restartRequired = $true
         }
     }
 
@@ -617,11 +619,11 @@ function UninstallContainer
     }
     else
     {
-        switch(Get-wmiobject -class win32_operatingsystem | select-object -ExpandProperty Caption ){
-            'Microsoft Windows 10' {$null = Disable-WindowsOptionalFeature -FeatureName Containers}
+        switch -wildcard (Get-wmiobject -class win32_operatingsystem | select-object -ExpandProperty Caption ){
+            'Microsoft Windows 10 *' {$null = Disable-WindowsOptionalFeature -FeatureName Containers -Online}
             Default {$null = Uninstall-WindowsFeature containers        }
         }
-        
+
     }
 }
 
